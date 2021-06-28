@@ -17,6 +17,8 @@ engine = create_engine(
 )
 SessionLocal = sessionmaker(autocommit=False,autoflush=False,bind=engine)
 
+celery_session = SessionLocal()
+
 Base = declarative_base()
 
 

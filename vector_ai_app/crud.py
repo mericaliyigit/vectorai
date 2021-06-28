@@ -27,8 +27,9 @@ def get_cities(db: Session, skip: int = 0, limit: int = 100,country=''):
     return results
 
 
-def update_city(db:Session, city:schemas.City):
+def update_city(db:Session, city_to_update):
 
+    city=schemas.City.parse_obj(city_to_update)
     the_country = db.query(models.Country).filter(models.Country.name == city.country).first()
 
     if the_country is not None:
@@ -53,7 +54,9 @@ def update_city(db:Session, city:schemas.City):
             return False
 
 
-def remove_city(db:Session, city:schemas.RemoveCity):
+def remove_city(db:Session, city_to_remove):
+
+    city=schemas.City.parse_obj(city_to_remove)
 
     the_country = db.query(models.Country).filter(models.Country.name == city.country).first()
     if the_country is None:
@@ -70,17 +73,6 @@ def remove_city(db:Session, city:schemas.RemoveCity):
         return {'Error': f'City {city.city} in {city.country} does not exist'}
 
 
-def create_country(db: Session, country: schemas.Country):
-    the_continent = db.query(models.Continent).filter(models.Continent.name == country.continent).first()
-    if the_continent is not None:
-        print('AA')
-        same_continent = db.query(models.Country).filter(models.Country.continent_id == the_continent.continent_id).filter(
-            models.Continent.country_id == the_continent.country_id).first()
-
-    else:
-        return {'Error': f'No such continent exist'}
-
-
 def proxy_to_dictionary(result_proxy):
     return [dict(row) for row in result_proxy]
 
@@ -90,11 +82,12 @@ def get_all_continents(db:Session):
                    "sum(no_roads) as total_roads , sum(no_parks) as total_parks," \
                    "sum(no_trees) as total_trees" \
                    " from" \
-                   " city join country" \
-                   " on city.country_id = country.country_id" \
-                   " join continent" \
-                   " on country.continent_id = continent.continent_id" \
-                   " group by continent.name"
+                   " continent full join country" \
+                   " on continent.continent_id = country.continent_id" \
+                   " full join city" \
+                   " on country.country_id = city.country_id" \
+                   " group by continent.name" \
+                   " order by continent_name"
     query = db.execute(query_string)
     results = proxy_to_dictionary(query)
     return results
@@ -106,9 +99,10 @@ def get_all_countries(db:Session):
             "sum(no_roads) as total_roads , sum(no_parks) as total_parks," \
             "sum(no_trees) as total_trees" \
             " from" \
-            " city join country" \
-            " on city.country_id = country.country_id" \
-            " group by country.name"
+            " country full join city" \
+            " on country.country_id = city.country_id" \
+            " group by country.name" \
+            " order by country_name" \
 
     query = db.execute(query_string)
     results = proxy_to_dictionary(query)
@@ -116,29 +110,13 @@ def get_all_countries(db:Session):
 
 
 def raw_sql(db:Session):
-    query=db.execute("Select * from continent where continent_id = '95'")
-    aa=proxy_to_dictionary(query)
-    print('Stop')
-    result= query.fetchall()
-    for row in result:
-        print(row)
-
-    print('RAAW')
+    query = db.execute("insert into test_table(value1) values ('abc')")
+    db.commit()
 
 
-def create_citya(db:Session, create_city : schemas.City):
+def create_country(db:Session, new_country):
 
-    query_string = "select country.country_id from city" \
-                   " join country " \
-                   " on country.country_id = city.country_id" \
-                   f" where country.name ='{create_city.country}'" \
-                   " limit 1"
-    query = db.execute(query_string)
-    aa= proxy_to_dictionary(query)
-    print('Stop')
-
-
-def create_country(db:Session, country:schemas.Country):
+    country=schemas.Country.parse_obj(new_country)
 
     query_string = "select continent.continent_id from continent" \
                    " join country " \
@@ -157,8 +135,10 @@ def create_country(db:Session, country:schemas.Country):
     print('AAS')
 
 
-def create_city(db: Session, city: schemas.City):
-    
+def create_city(db: Session, city):
+
+    city = schemas.City.parse_obj(city)
+
     target_country = db.query(models.Country).filter(models.Country.name == city.country).first()
     if target_country is not None:
 
@@ -178,3 +158,15 @@ def create_city(db: Session, city: schemas.City):
             return {'Error': f'City {city.name} in {city.country} already exists'}
     else:
         return {'Error': f'No such country named {city.country} exists'}
+
+
+def create_continent(db:Session, new_continent):
+
+    continent = schemas.Continent.parse_obj(new_continent)
+
+    new_continent = models.Continent(name=continent.name)
+    db.add(new_continent)
+    db.commit()
+
+
+

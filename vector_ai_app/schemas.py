@@ -1,5 +1,6 @@
+from typing import Optional
+
 from pydantic import BaseModel
-from typing import List,Optional
 
 
 class Continent(BaseModel):
@@ -20,6 +21,17 @@ class City(BaseModel):
     no_parks:int
     no_hospitals:int
     population:int
+
+
+class UpdateCity(BaseModel):
+    name:str
+    country:str
+    area: Optional[int] = 1
+    no_roads: Optional[int] = 1
+    no_trees: Optional[int] = 1
+    no_parks: Optional[int] = 1
+    no_hospitals: Optional[int] = 1
+    population: Optional[int] = 1
 
 
 class RemoveCity(BaseModel):

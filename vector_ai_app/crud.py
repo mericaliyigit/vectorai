@@ -1,6 +1,3 @@
-from typing import List
-
-from pydantic import parse_obj_as
 from sqlalchemy.orm import Session
 from . import models, schemas
 
@@ -22,14 +19,13 @@ def get_cities(db: Session, skip: int = 0, limit: int = 100,country=''):
                     'country': item.City.country_name.name, 'population': item.City.population,
                     'no_roads': item.City.no_roads}
         results.append(new_city)
-        print(new_city)
 
     return results
 
 
 def update_city(db:Session, city_to_update):
 
-    city=schemas.City.parse_obj(city_to_update)
+    city=schemas.UpdateCity.parse_obj(city_to_update)
     the_country = db.query(models.Country).filter(models.Country.name == city.country).first()
 
     if the_country is not None:
@@ -42,6 +38,7 @@ def update_city(db:Session, city_to_update):
 
             the_city.name = city.name
             the_city.population = city.population
+            the_city.area = city.area
             the_city.no_parks = city.no_parks
             the_city.no_roads = city.no_roads
             the_city.no_trees = city.no_trees
@@ -56,7 +53,7 @@ def update_city(db:Session, city_to_update):
 
 def remove_city(db:Session, city_to_remove):
 
-    city=schemas.City.parse_obj(city_to_remove)
+    city = schemas.RemoveCity.parse_obj(city_to_remove)
 
     the_country = db.query(models.Country).filter(models.Country.name == city.country).first()
     if the_country is None:
@@ -109,11 +106,6 @@ def get_all_countries(db:Session):
     return results
 
 
-def raw_sql(db:Session):
-    query = db.execute("insert into test_table(value1) values ('abc')")
-    db.commit()
-
-
 def create_country(db:Session, new_country):
 
     country=schemas.Country.parse_obj(new_country)
@@ -124,15 +116,13 @@ def create_country(db:Session, new_country):
                    f" where continent.name = '{country.continent}'" \
                    " limit 1"
     query = db.execute(query_string)
-    values=proxy_to_dictionary(query)
+    values = proxy_to_dictionary(query)
 
     if len(values) > 0:
         query_string = "insert into country(name,continent_id)" \
                        f" values ('{country.name}',{values[0]['continent_id']})"
         query = db.execute(query_string)
         db.commit()
-
-    print('AAS')
 
 
 def create_city(db: Session, city):

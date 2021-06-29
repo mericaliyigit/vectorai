@@ -1,15 +1,27 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 
 class Continent(BaseModel):
     name:str
 
+    @validator('name')
+    def prevent_numeric(cls,v):
+        if any (i.isdigit() for i in v):
+            raise ValueError('Cant contain numbers')
+        return v
+
 
 class Country(BaseModel):
     name:str
     continent:str
+
+    @validator('name','continent')
+    def prevent_numeric(cls,v):
+        if any (i.isdigit() for i in v):
+            raise ValueError('Cant contain numbers')
+        return v
 
 
 class City(BaseModel):
@@ -22,16 +34,28 @@ class City(BaseModel):
     no_hospitals:int
     population:int
 
+    @validator('name','country')
+    def prevent_numeric(cls,v):
+        if any (i.isdigit() for i in v):
+            raise ValueError('Cant contain numbers')
+        return v
+
 
 class UpdateCity(BaseModel):
     name:str
     country:str
-    area: Optional[int] = 1
-    no_roads: Optional[int] = 1
-    no_trees: Optional[int] = 1
-    no_parks: Optional[int] = 1
-    no_hospitals: Optional[int] = 1
-    population: Optional[int] = 1
+    area: Optional[int]
+    no_roads: Optional[int]
+    no_trees: Optional[int]
+    no_parks: Optional[int]
+    no_hospitals: Optional[int]
+    population: Optional[int]
+
+    @validator('name','country')
+    def prevent_numeric(cls,v):
+        if any (i.isdigit() for i in v):
+            raise ValueError('Cant contain numbers')
+        return v
 
 
 class RemoveCity(BaseModel):

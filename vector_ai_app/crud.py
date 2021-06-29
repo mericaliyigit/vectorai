@@ -35,16 +35,18 @@ def update_city(db:Session, city_to_update):
 
         # We have found the city in the db we are updating it
         if the_city is not None:
-
-            the_city.name = city.name
-            the_city.population = city.population
-            the_city.area = city.area
-            the_city.no_parks = city.no_parks
-            the_city.no_roads = city.no_roads
-            the_city.no_trees = city.no_trees
-            the_city.no_hospitals = city.no_hospitals
-            the_city.country_id = the_country.country_id
-
+            if city.population is not None:
+                the_city.population = city.population
+            if city.area is not None:
+                the_city.area = city.area
+            if city.no_parks is not None:
+                the_city.no_parks = city.no_parks
+            if city.no_roads is not None:
+                the_city.no_roads = city.no_roads
+            if city.no_trees is not None:
+                the_city.no_trees = city.no_trees
+            if city.no_hospitals is not None:
+                the_city.no_hospitals = city.no_hospitals
             db.commit()
             return True
         else:
@@ -110,11 +112,9 @@ def create_country(db:Session, new_country):
 
     country=schemas.Country.parse_obj(new_country)
 
-    query_string = "select continent.continent_id from continent" \
-                   " join country " \
-                   " on country.continent_id = country.continent_id" \
-                   f" where continent.name = '{country.continent}'" \
-                   " limit 1"
+    query_string = "select continent_id from" \
+                   f" continent where continent.name = '{country.continent}'"
+
     query = db.execute(query_string)
     values = proxy_to_dictionary(query)
 
